@@ -9,6 +9,9 @@ Reproduction of:
 Course assignment for **ASI** (Advanced Statistical Inference), paper
 reproduction project.
 
+**Authors:** Theodoris Donval & Lucas Aliome (EURECOM). See the *Contributions*
+section of the report for the breakdown of the work.
+
 ---
 
 ## What this repository reproduces

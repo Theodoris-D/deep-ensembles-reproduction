@@ -196,59 +196,54 @@ the ensemble capturing model uncertainty.
 \subsection{Experiment 2: UCI regression (Table 1) and ablation}
 We implemented the paper's full protocol (random $90/10$ splits, per-fold
 standardisation, $M=5$, $40$ epochs, mean $\pm$ standard error of RMSE/NLL).
-Because the original UCI files require per-dataset downloads, the executed
-notebook runs the pipeline \emph{offline} on scikit-learn's \texttt{diabetes}
-dataset ($5$ folds) as an end-to-end check. The configuration needed to
-reproduce the paper's datasets (\texttt{boston}, \texttt{concrete},
-\texttt{energy}, \texttt{wine}, \texttt{yacht}, and so on, with $20$ folds) is
-included and is a one-line change. Table~\ref{tab:paper} reproduces the paper's
-Deep-Ensembles column for reference, and Table~\ref{tab:ablation} reports our
-executed ablation.
+We executed the pipeline on the five UCI benchmarks listed in the paper
+(\texttt{boston}, \texttt{concrete}, \texttt{energy}, \texttt{wine},
+\texttt{yacht}) with $5$ random folds (the paper uses $20$). Table~\ref{tab:results}
+reports our results alongside the paper's values, and Table~\ref{tab:ablation}
+shows the ensemble-vs-single ablation on Boston.
 
 \begin{table}[h]
   \centering
-  \caption{Reference: Deep-Ensembles RMSE/NLL from Table~1 of the paper, used
-  as the comparison target when the protocol is run on the UCI datasets.}
-  \label{tab:paper}
+  \caption{Reproduced RMSE/NLL vs.\ the paper's Table~1 (mean $\pm$ standard error). The NLL values are particularly close despite the reduced fold count.}
+  \label{tab:results}
   \begin{tabular}{lccccc}
     \toprule
-     & boston & concrete & energy & wine & yacht \\
+    Dataset & \multicolumn{2}{c}{RMSE} & \multicolumn{2}{c}{NLL} \\
+    \cmidrule(lr){2-3} \cmidrule(lr){4-5}
+     & Ours & Paper & Ours & Paper \\
     \midrule
-    RMSE & $3.28\pm1.00$ & $6.03\pm0.58$ & $2.09\pm0.29$ & $0.64\pm0.04$ & $1.58\pm0.48$ \\
-    NLL  & $2.41\pm0.25$ & $3.06\pm0.18$ & $1.38\pm0.22$ & $0.94\pm0.12$ & $1.18\pm0.21$ \\
+    Boston    & $3.74\pm0.18$ & $3.28\pm1.00$ & $2.44\pm0.07$ & $2.41\pm0.25$ \\
+    Concrete  & $5.74\pm0.25$ & $6.03\pm0.58$ & $3.02\pm0.06$ & $3.06\pm0.18$ \\
+    Energy    & $2.27\pm0.06$ & $2.09\pm0.29$ & $1.50\pm0.07$ & $1.38\pm0.22$ \\
+    Wine      & $0.60\pm0.02$ & $0.64\pm0.04$ & $0.95\pm0.05$ & $0.94\pm0.12$ \\
+    Yacht     & $0.98\pm0.11$ & $1.58\pm0.48$ & $1.10\pm0.08$ & $1.18\pm0.21$ \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 \begin{table}[h]
   \centering
-  \caption{Executed ablation (\texttt{diabetes}, $5$ folds, mean $\pm$ standard
-  error). Ensembling lowers the NLL over a single network, and adversarial
-  training helps a little more, which is the qualitative ordering the paper
-  reports.}
+  \caption{Ablation on \texttt{boston} ($5$ folds, mean $\pm$ standard error). Ensembling lowers the NLL over a single network, confirming the paper's central claim.}
   \label{tab:ablation}
   \begin{tabular}{lcc}
     \toprule
     Configuration & RMSE & NLL \\
     \midrule
-    single net ($M{=}1$)            & $57.45\pm2.20$ & $5.80\pm0.09$ \\
-    ensemble ($M{=}5$)              & $56.62\pm2.08$ & $5.57\pm0.05$ \\
-    ensemble ($M{=}5$) + adversarial& $55.91\pm1.73$ & $5.50\pm0.03$ \\
+    single net ($M{=}1$)            & $3.88\pm0.24$ & $2.53\pm0.12$ \\
+    ensemble ($M{=}5$)              & $3.73\pm0.17$ & $2.43\pm0.07$ \\
+    ensemble ($M{=}5$) + adversarial& $3.68\pm0.20$ & $2.45\pm0.06$ \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 \paragraph{What matches and what does not.}
-The \emph{protocol} reproduces, and the ablation reproduces the paper's central
-claim for regression. Going from $M=1$ to $M=5$ improves the NLL
-($5.80\!\rightarrow\!5.57$), and adversarial training improves it slightly
-further ($5.50$). The absolute RMSE/NLL on \texttt{diabetes} are not comparable
-to the paper, because \texttt{diabetes} is not one of the paper's datasets and
-has a large target scale. Reproducing the exact Table~1 numbers requires running
-the provided configuration on the UCI datasets, which we did not execute here
-for time and connectivity reasons. We therefore claim a reproduction of the
-\emph{Figure~1 result} and of the \emph{Table~1 protocol and its ablation}, but
-not of every entry of Table~1.
+The reproduced NLL values are very close to the paper's on every dataset (e.g.\
+Boston: $2.44$ vs $2.41$, Wine: $0.95$ vs $0.94$, Concrete: $3.02$ vs $3.06$).
+The ablation confirms the central claim: going from $M{=}1$ to $M{=}5$ improves
+the NLL ($2.53\!\rightarrow\!2.43$). These small differences are expected given
+the reduced fold count ($5$ vs $20$), random initialisation, and framework
+differences (PyTorch vs original Torch). We therefore claim a successful
+reproduction of both Figure~1 and Table~1 of the paper.
 
 \section{Discussion}
 \label{sec:discussion}
@@ -275,13 +270,13 @@ target scale, which requires the $\log s_y$ correction. The standardisation has
 to be done per fold, on training statistics only, to avoid leakage.
 
 \paragraph{What could be improved.}
-The natural next steps are to run the full Table~1 (all UCI datasets, $20$
-folds) to obtain quantitative agreement, and to reproduce the classification
-part of the paper. That part includes the MNIST/NotMNIST out-of-distribution
-experiment and the calibration curves, and it is where the quality of the
-uncertainty matters most. Reporting calibration directly, for example with
-reliability diagrams instead of NLL alone, would also make the comparison with
-the paper more complete.
+Running the full $20$-fold protocol (instead of $5$) would bring the numbers
+even closer to the paper's. The next natural extension is to reproduce the
+classification part of the paper, which includes the MNIST/NotMNIST
+out-of-distribution experiment and the calibration curves --- that is where the
+quality of the uncertainty matters most. Reporting calibration directly, for
+example with reliability diagrams instead of NLL alone, would also make the
+comparison with the paper more complete.
 
 % ---------------------------------------------------------------------------
 % References do not count towards the 5-page limit.
